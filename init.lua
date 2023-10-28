@@ -228,7 +228,7 @@ require('lazy').setup({
   --    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {})
 
 -- [[ Setting options ]]
@@ -306,11 +306,6 @@ vim.keymap.set('n', '<C-x>1', '<C-W>o', { desc = 'Close all other windows' })
 vim.keymap.set('n', '<C-x>2', '<C-W>s', { desc = 'Split window below' })
 vim.keymap.set('n', '<C-x>3', '<C-W>v', { desc = 'Split window right' })
 vim.keymap.set('n', '<C-x>+', '<C-W>=', { desc = 'Equally high and wide' })
-
--- Buffers
-vim.keymap.set('n', '[b', '<cmd>bprevious<cr>', { desc = 'Prev buffer' })
-vim.keymap.set('n', ']b', '<cmd>bnext<cr>', { desc = 'Next buffer' })
-vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to previously used buffer' })
 
 -- Clear search with <esc>
 vim.keymap.set({ 'i', 'n' }, '<esc>', '<cmd>noh<cr><esc>', { desc = 'Escape and clear hlsearch' })
