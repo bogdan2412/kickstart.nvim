@@ -288,6 +288,33 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Move to window using the <ctrl> hjkl keys
+vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Go to left window', remap = true })
+vim.keymap.set('n', '<C-j>', '<C-w>j', { desc = 'Go to lower window', remap = true })
+vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Go to upper window', remap = true })
+vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to right window', remap = true })
+
+-- Resize window using <ctrl> arrow keys
+vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width' })
+vim.keymap.set('n', '<C-S-k>', '<cmd>resize +2<cr>', { desc = 'Increase window height' })
+vim.keymap.set('n', '<C-S-j>', '<cmd>resize -2<cr>', { desc = 'Decrease window height' })
+vim.keymap.set('n', '<C-S-l>', '<cmd>vertical resize +2<cr>', { desc = 'Increase window width' })
+
+-- Emacs-inspired window management mappings
+vim.keymap.set('n', '<C-x>0', '<C-W>q', { desc = 'Close this window' })
+vim.keymap.set('n', '<C-x>1', '<C-W>o', { desc = 'Close all other windows' })
+vim.keymap.set('n', '<C-x>2', '<C-W>s', { desc = 'Split window below' })
+vim.keymap.set('n', '<C-x>3', '<C-W>v', { desc = 'Split window right' })
+vim.keymap.set('n', '<C-x>+', '<C-W>=', { desc = 'Equally high and wide' })
+
+-- Buffers
+vim.keymap.set('n', '[b', '<cmd>bprevious<cr>', { desc = 'Prev buffer' })
+vim.keymap.set('n', ']b', '<cmd>bnext<cr>', { desc = 'Next buffer' })
+vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to previously used buffer' })
+
+-- Clear search with <esc>
+vim.keymap.set({ 'i', 'n' }, '<esc>', '<cmd>noh<cr><esc>', { desc = 'Escape and clear hlsearch' })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -439,7 +466,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  nmap('gK', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
