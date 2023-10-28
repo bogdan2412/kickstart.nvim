@@ -315,6 +315,37 @@ vim.keymap.set('n', '<leader>`', '<cmd>e #<cr>', { desc = 'Switch to previously 
 -- Clear search with <esc>
 vim.keymap.set({ 'i', 'n' }, '<esc>', '<cmd>noh<cr><esc>', { desc = 'Escape and clear hlsearch' })
 
+-- Terminal mappings
+vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { desc = 'Enter Normal Mode' })
+vim.keymap.set('t', '<C-h>', '<cmd>wincmd h<cr>', { desc = 'Go to left window' })
+vim.keymap.set('t', '<C-j>', '<cmd>wincmd j<cr>', { desc = 'Go to lower window' })
+vim.keymap.set('t', '<C-k>', '<cmd>wincmd k<cr>', { desc = 'Go to upper window' })
+vim.keymap.set('t', '<C-l>', '<cmd>wincmd l<cr>', { desc = 'Go to right window' })
+
+-- Floating terminal mappings
+local float_term
+local function float_term_open()
+  local opts = { size = { width = 0.9, height = 0.9 }, persistent = true }
+
+  if float_term and float_term:buf_valid() then
+    float_term:toggle()
+  else
+    float_term = require("lazy.util").float_term("tmux", opts)
+    vim.api.nvim_buf_set_option(float_term.buf, "buflisted", true)
+    vim.api.nvim_create_autocmd("BufEnter", {
+      buffer = float_term.buf,
+      callback = function()
+        vim.cmd.startinsert()
+      end,
+    })
+  end
+end
+vim.api.nvim_create_user_command("FloatTerm", float_term_open, {})
+
+vim.keymap.set('n', '<leader>t', float_term_open, { desc = 'Open Terminal' })
+vim.keymap.set('n', '<C-/>', float_term_open, { desc = 'Open Terminal' })
+vim.keymap.set('t', '<C-/>', '<cmd>close<cr>', { desc = 'Hide Terminal' })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
