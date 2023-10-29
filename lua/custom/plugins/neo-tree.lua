@@ -16,7 +16,8 @@ return {
           local buf = vim.api.nvim_get_current_buf()
           local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
           if filetype ~= "neo-tree" then
-            require("neo-tree.command").execute({})
+            local root = require("custom.root").get_for_buf(buf)
+            require("neo-tree.command").execute({ dir = root })
           else
             vim.cmd("wincmd w")
           end
@@ -26,10 +27,22 @@ return {
     },
     opts = {
       filesystem = {
+        -- As of 2023-10-30, [neo-tree]'s implementation of this is faulty - it does not
+        -- seem to stay subscribed to [DirChanged] events while a panel is not showing
+        -- and it does not refresh itself appropriately when re-opened.
+        -- This furthermore means that the different sources are not kept in line.
+        -- We will implement this functionality ourselves instead.
+        bind_to_cwd = false,
         follow_current_file = {
           enabled = true,
         },
         hijack_netrw_behavior = "open_current",
+      },
+      buffers = {
+        bind_to_cwd = false,
+      },
+      git_status = {
+        bind_to_cwd = false,
       },
     },
     config = function(_, opts)
@@ -62,6 +75,24 @@ return {
       if load_on_startup then
         require("neo-tree.command").execute({ action = "show" })
       end
+
+      vim.api.nvim_create_autocmd("BufEnter", {
+        callback = function(event)
+          local filetype_prev = vim.api.nvim_buf_get_option(vim.api.nvim_get_current_buf(), "filetype")
+          local filetype_next = vim.api.nvim_buf_get_option(event.buf, "filetype")
+          if filetype_prev ~= "neo-tree" and filetype_next ~= "neo-tree" then
+            local root = require("custom.root").get_for_buf(event.buf)
+            local cwd = vim.fn.getcwd()
+            if root ~= "." and root ~= cwd then
+              vim.api.nvim_set_current_dir(root)
+
+              for _, source in ipairs({ "filesystem", "buffers", "git_status" }) do
+                require("neo-tree.sources.manager").dir_changed(source)
+              end
+            end
+          end
+        end,
+      })
     end,
   },
 }

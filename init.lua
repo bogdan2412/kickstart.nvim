@@ -328,6 +328,7 @@ local function float_term_open()
   else
     float_term = require("lazy.util").float_term("tmux", opts)
     vim.api.nvim_buf_set_option(float_term.buf, "buflisted", true)
+    vim.api.nvim_buf_set_option(float_term.buf, "filetype", "float-term")
     vim.api.nvim_create_autocmd("BufEnter", {
       buffer = float_term.buf,
       callback = function()
@@ -574,9 +575,17 @@ mason_lspconfig.setup_handlers {
 
 -- Setup [ocaml-lsp] separately from [mason_lspconfig] so that we use [ocamllsp] from [$PATH] rather than installing
 -- it from [opam]. This makes it easier to use the correct version for the current opam switch.
-require('lspconfig').ocamllsp.setup {
+local ocamllsp = require('lspconfig').ocamllsp
+ocamllsp.setup {
   capabilities = capabilities,
   on_attach = on_attach,
+  root_dir = function(path)
+    local dune_path = require('custom.root').path_detectors.dune(path)
+    if dune_path then
+      return dune_path
+    end
+    return require('lspconfig.server_configurations.ocamllsp').default_config.root_dir(path)
+  end
 }
 
 -- [[ Configure nvim-cmp ]]
