@@ -56,11 +56,6 @@ vim.wo.number = true
 -- Enable mouse mode
 vim.o.mouse = 'a'
 
--- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
-
 -- Enable break indent
 vim.o.breakindent = true
 
@@ -318,6 +313,20 @@ vim.keymap.set('t', '<C-j>', '<cmd>wincmd j<cr>', { desc = 'Go to lower window' 
 vim.keymap.set('t', '<C-k>', '<cmd>wincmd k<cr>', { desc = 'Go to upper window' })
 vim.keymap.set('t', '<C-l>', '<cmd>wincmd l<cr>', { desc = 'Go to right window' })
 
+-- Delete and paste over without updating yank buffer
+vim.keymap.set('v', '<leader>p', '"_dP')
+vim.keymap.set({ 'n', 'v' }, '<leader>d', '"_d')
+
+-- Copying into system clipboard
+vim.keymap.set({ 'n', 'v' }, '<leader>y', '"+y')
+-- Comment the above keymap and uncomment the below to always sync clipboard
+-- between OS and Neovim.
+-- vim.o.clipboard = 'unnamedplus'
+
+-- Move selected lines up and down and adjust indentation
+vim.keymap.set('v', 'J', ":m '>+1<cr>gv=gv")
+vim.keymap.set('v', 'K', ":m '<-2<cr>gv=gv")
+
 -- Floating terminal mappings
 local float_term
 local function float_term_open()
@@ -340,7 +349,12 @@ end
 vim.api.nvim_create_user_command("FloatTerm", float_term_open, {})
 
 vim.keymap.set('n', '<leader>t', float_term_open, { desc = 'Open Terminal' })
+
+-- The following was intended to be [Control + /], however on Linux systems, that is matched
+-- by <C-_> (same as Control + _), while on macOS it is matched by <C-/>.
+vim.keymap.set('n', '<C-_>', float_term_open, { desc = 'Open Terminal' })
 vim.keymap.set('n', '<C-/>', float_term_open, { desc = 'Open Terminal' })
+vim.keymap.set('t', '<C-_>', '<cmd>close<cr>', { desc = 'Hide Terminal' })
 vim.keymap.set('t', '<C-/>', '<cmd>close<cr>', { desc = 'Hide Terminal' })
 
 -- [[ Highlight on yank ]]
@@ -467,7 +481,6 @@ end, 0)
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
-vim.keymap.set('n', '<leader>d', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
