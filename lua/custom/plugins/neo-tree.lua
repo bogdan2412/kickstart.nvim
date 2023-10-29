@@ -26,6 +26,7 @@ return {
       },
     },
     opts = {
+      close_if_last_window = true,
       filesystem = {
         -- As of 2023-10-30, [neo-tree]'s implementation of this is faulty - it does not
         -- seem to stay subscribed to [DirChanged] events while a panel is not showing

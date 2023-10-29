@@ -9,7 +9,7 @@ return {
   {
     'akinsho/bufferline.nvim',
     version = "*",
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    dependencies = { 'nvim-tree/nvim-web-devicons', 'echasnovski/mini.bufremove', },
     lazy = false,
     keys = {
       { '[b',           '<cmd>BufferLineCyclePrev<cr>', desc = 'Prev buffer' },
@@ -31,6 +31,7 @@ return {
     },
     opts = {
       options = {
+        close_command = function(buf) require("mini.bufremove").delete(buf) end,
         separator_style = "slant",
         diagnostics = "nvim_lsp",
         diagnostics_indicator = function(_, _, diagnostics_dict, _)
@@ -51,6 +52,20 @@ return {
           },
         },
       },
+    },
+  },
+
+  {
+    'echasnovski/mini.bufremove',
+    version = '*',
+    keys = {
+      {
+        '<leader>q',
+        function()
+          require('mini.bufremove').delete()
+        end,
+        desc = '[Q]uit current buffer'
+      }
     },
   },
 }
