@@ -60,9 +60,7 @@ return {
       end
 
       if load_on_startup then
-        vim.defer_fn(function()
-          require("neo-tree.command").execute({ action = "show" })
-        end, 0)
+        require("neo-tree.command").execute({ action = "show" })
       end
     end,
   },
