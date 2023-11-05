@@ -53,6 +53,9 @@ vim.o.hlsearch = true
 -- Make line numbers default
 vim.wo.number = true
 
+-- Show relative line numbers by default
+vim.wo.relativenumber = true
+
 -- Enable mouse mode
 vim.o.mouse = 'a'
 
