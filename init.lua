@@ -294,10 +294,10 @@ vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Go to upper window', remap = tr
 vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to right window', remap = true })
 
 -- Resize window using <ctrl> arrow keys
-vim.keymap.set('n', '<C-S-h>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width' })
-vim.keymap.set('n', '<C-S-k>', '<cmd>resize +2<cr>', { desc = 'Increase window height' })
-vim.keymap.set('n', '<C-S-j>', '<cmd>resize -2<cr>', { desc = 'Decrease window height' })
-vim.keymap.set('n', '<C-S-l>', '<cmd>vertical resize +2<cr>', { desc = 'Increase window width' })
+vim.keymap.set('n', '<C-A-h>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width' })
+vim.keymap.set('n', '<C-A-k>', '<cmd>resize +2<cr>', { desc = 'Increase window height' })
+vim.keymap.set('n', '<C-A-j>', '<cmd>resize -2<cr>', { desc = 'Decrease window height' })
+vim.keymap.set('n', '<C-A-l>', '<cmd>vertical resize +2<cr>', { desc = 'Increase window width' })
 
 -- Emacs-inspired window management mappings
 vim.keymap.set('n', '<C-x>0', '<C-W>q', { desc = 'Close this window' })
