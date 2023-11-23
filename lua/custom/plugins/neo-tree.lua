@@ -61,6 +61,11 @@ return {
         load_on_startup = false
       end
 
+      -- Prevent neo-tree from opening when started in diff mode
+      if load_on_startup and vim.api.nvim_get_option_value("diff", {}) then
+        load_on_startup = false
+      end
+
       -- Prevent neo-tree from opening for git prompts
       if load_on_startup and vim.fn.argc(-1) == 1 then
         local arg = vim.fn.argv(0, -1)
