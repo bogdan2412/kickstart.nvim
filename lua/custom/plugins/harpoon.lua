@@ -33,20 +33,72 @@ local function install_set_cursor_hooks()
   })
 end
 
+local function sync_bufferline_pins(refresh_buffers)
+  local harpoon = require("harpoon.mark")
+  local bufferline = require("bufferline")
+
+  -- Update [bufferline] state
+  if refresh_buffers then
+    nvim_bufferline()
+  end
+
+  -- Synchronise set of pinned tabs with set of harpoon marks
+  local bufferline_elements = bufferline.get_elements()["elements"]
+  for _, element in ipairs(bufferline_elements) do
+    local buf_name = vim.api.nvim_buf_get_name(element.id)
+    local harpoon_mark = harpoon.get_index_of(buf_name)
+
+    if harpoon_mark == nil then
+      if bufferline.groups._is_pinned(element) then
+        bufferline.groups.remove_element("pinned", element)
+      end
+    else
+      if not bufferline.groups._is_pinned(element) then
+        bufferline.groups.add_element("pinned", element)
+      end
+    end
+  end
+
+  -- Synchronise order of pinned tabs with harpoon marks
+  local in_order = false
+  bufferline_elements = bufferline.get_elements()["elements"]
+  while not in_order do
+    in_order = true
+    for index, element in ipairs(bufferline_elements) do
+      local buf_name = vim.api.nvim_buf_get_name(element.id)
+      local harpoon_mark = harpoon.get_index_of(buf_name)
+
+      if harpoon_mark ~= nil then
+        if harpoon_mark ~= index then
+          in_order = false
+          bufferline.move_to(harpoon_mark, index)
+          bufferline_elements[harpoon_mark], bufferline_elements[index] =
+              bufferline_elements[index], bufferline_elements[harpoon_mark]
+        end
+      end
+    end
+  end
+end
+
 local function open_marks()
   local marks = require("harpoon").get_mark_config().marks
+
+  local new_buffers = false
   for _, mark in ipairs(marks) do
     local filename = vim.fs.normalize(mark.filename)
     if vim.fn.filereadable(filename) == 1 then
       local buf_id = vim.fn.bufnr(filename)
       if buf_id == -1 then
         buf_id = vim.fn.bufadd(filename)
+        new_buffers = true
       end
       if not vim.api.nvim_buf_get_option(buf_id, "buflisted") then
         vim.api.nvim_buf_set_option(buf_id, "buflisted", true)
       end
     end
   end
+
+  sync_bufferline_pins(new_buffers)
 end
 
 local function install_open_marks_hooks()
