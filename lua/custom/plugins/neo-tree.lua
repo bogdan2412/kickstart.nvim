@@ -1,3 +1,7 @@
+local function allowed_filetype(filetype)
+  return filetype ~= "neo-tree" and filetype ~= "fugitive"
+end
+
 return {
   {
     "nvim-neo-tree/neo-tree.nvim",
@@ -15,7 +19,7 @@ return {
         function()
           local buf = vim.api.nvim_get_current_buf()
           local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
-          if filetype ~= "neo-tree" then
+          if allowed_filetype(filetype) then
             local root = require("custom.root").get_for_buf(buf)
             require("neo-tree.command").execute({ dir = root })
           else
@@ -86,10 +90,10 @@ return {
         callback = function(event)
           local filetype_prev = vim.api.nvim_buf_get_option(vim.api.nvim_get_current_buf(), "filetype")
           local filetype_next = vim.api.nvim_buf_get_option(event.buf, "filetype")
-          if filetype_prev ~= "neo-tree" and filetype_next ~= "neo-tree" then
+          if allowed_filetype(filetype_prev) and allowed_filetype(filetype_prev) then
             local root = require("custom.root").get_for_buf(event.buf)
-            local cwd = vim.fn.getcwd()
-            if root ~= "." and root ~= cwd then
+            local cwd = vim.loop.fs_realpath(vim.fn.getcwd())
+            if root ~= cwd then
               vim.api.nvim_set_current_dir(root)
 
               for _, source in ipairs({ "filesystem", "buffers", "git_status" }) do
