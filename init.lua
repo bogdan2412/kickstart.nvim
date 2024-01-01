@@ -607,6 +607,8 @@ ocamllsp.setup {
   end
 }
 
+require("lsp_signature")
+
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
 local cmp = require 'cmp'
