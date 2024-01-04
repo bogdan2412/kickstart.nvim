@@ -607,6 +607,15 @@ ocamllsp.setup {
   end
 }
 
+-- Setup [pyright] separately from [mason_lspconfig] so that we can use [pyright-extended], which adds formatting
+-- via [yapf] and linting via [ruff] on top of the usual [pyright] LSP.
+-- [pyright-extended] may be installed from [npm]: [npm i -g @replit/pyright-extended].
+local pyright = require('lspconfig').pyright
+pyright.setup {
+  capabilities = capabilities,
+  on_attach = on_attach,
+}
+
 require("lsp_signature")
 
 -- [[ Configure nvim-cmp ]]
