@@ -1,5 +1,15 @@
-local function allowed_filetype(filetype)
-  return filetype ~= "neo-tree" and filetype ~= "fugitive"
+local function allowed_buffer(buf)
+  local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
+  if filetype == "neo-tree" or filetype == "fugitive" then
+    return false
+  end
+
+  local name = vim.api.nvim_buf_get_name(buf)
+  if string.sub(name, 1, 7) == "term://" then
+    return false
+  end
+
+  return true
 end
 
 return {
@@ -18,8 +28,7 @@ return {
         '<leader>e',
         function()
           local buf = vim.api.nvim_get_current_buf()
-          local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
-          if allowed_filetype(filetype) then
+          if allowed_buffer(buf) then
             local root = require("custom.root").get_for_buf(buf)
             require("neo-tree.command").execute({ dir = root })
           else
@@ -88,9 +97,7 @@ return {
 
       vim.api.nvim_create_autocmd("BufEnter", {
         callback = function(event)
-          local filetype_prev = vim.api.nvim_buf_get_option(vim.api.nvim_get_current_buf(), "filetype")
-          local filetype_next = vim.api.nvim_buf_get_option(event.buf, "filetype")
-          if allowed_filetype(filetype_prev) and allowed_filetype(filetype_prev) then
+          if allowed_buffer(vim.api.nvim_get_current_buf()) and allowed_buffer(event.buf) then
             local root = require("custom.root").get_for_buf(event.buf)
             local cwd = vim.loop.fs_realpath(vim.fn.getcwd())
             if root ~= cwd then
