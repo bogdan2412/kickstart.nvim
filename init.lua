@@ -287,12 +287,6 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
--- Move to window using the <ctrl> hjkl keys
-vim.keymap.set('n', '<C-h>', '<C-w>h', { desc = 'Go to left window', remap = true })
-vim.keymap.set('n', '<C-j>', '<C-w>j', { desc = 'Go to lower window', remap = true })
-vim.keymap.set('n', '<C-k>', '<C-w>k', { desc = 'Go to upper window', remap = true })
-vim.keymap.set('n', '<C-l>', '<C-w>l', { desc = 'Go to right window', remap = true })
-
 -- Resize window using <ctrl> arrow keys
 vim.keymap.set('n', '<C-A-h>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width' })
 vim.keymap.set('n', '<C-A-k>', '<cmd>resize +2<cr>', { desc = 'Increase window height' })
@@ -311,10 +305,6 @@ vim.keymap.set({ 'i', 'n' }, '<esc>', '<cmd>noh<cr><esc>', { desc = 'Escape and 
 
 -- Terminal mappings
 vim.keymap.set('t', '<esc><esc>', '<c-\\><c-n>', { desc = 'Enter Normal Mode' })
-vim.keymap.set('t', '<C-h>', '<cmd>wincmd h<cr>', { desc = 'Go to left window' })
-vim.keymap.set('t', '<C-j>', '<cmd>wincmd j<cr>', { desc = 'Go to lower window' })
-vim.keymap.set('t', '<C-k>', '<cmd>wincmd k<cr>', { desc = 'Go to upper window' })
-vim.keymap.set('t', '<C-l>', '<cmd>wincmd l<cr>', { desc = 'Go to right window' })
 
 -- Delete and paste over without updating yank buffer
 vim.keymap.set('v', '<leader>p', '"_dP')
