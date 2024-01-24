@@ -321,18 +321,23 @@ vim.keymap.set('v', 'J', ":m '>+1<cr>gv=gv")
 vim.keymap.set('v', 'K', ":m '<-2<cr>gv=gv")
 
 -- Floating terminal mappings
-local float_term
+local float_term = {}
 local function float_term_open()
   local opts = { size = { width = 0.9, height = 0.9 }, persistent = true }
+  local cwd = vim.loop.cwd()
 
-  if float_term and float_term:buf_valid() then
-    float_term:toggle()
+  if cwd == nil then
+    return
+  end
+
+  if float_term[cwd] and float_term[cwd]:buf_valid() then
+    float_term[cwd]:toggle()
   else
-    float_term = require("lazy.util").float_term("tmux", opts)
-    vim.api.nvim_buf_set_option(float_term.buf, "buflisted", false)
-    vim.api.nvim_buf_set_option(float_term.buf, "filetype", "float-term")
+    float_term[cwd] = require("lazy.util").float_term({ "tmux", "new-session", "-A", "-s", cwd }, opts)
+    vim.api.nvim_buf_set_option(float_term[cwd].buf, "buflisted", false)
+    vim.api.nvim_buf_set_option(float_term[cwd].buf, "filetype", "float-term")
     vim.api.nvim_create_autocmd("BufEnter", {
-      buffer = float_term.buf,
+      buffer = float_term[cwd].buf,
       callback = function()
         vim.cmd.startinsert()
       end,
