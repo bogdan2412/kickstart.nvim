@@ -329,7 +329,7 @@ local function float_term_open()
     float_term:toggle()
   else
     float_term = require("lazy.util").float_term("tmux", opts)
-    vim.api.nvim_buf_set_option(float_term.buf, "buflisted", true)
+    vim.api.nvim_buf_set_option(float_term.buf, "buflisted", false)
     vim.api.nvim_buf_set_option(float_term.buf, "filetype", "float-term")
     vim.api.nvim_create_autocmd("BufEnter", {
       buffer = float_term.buf,
