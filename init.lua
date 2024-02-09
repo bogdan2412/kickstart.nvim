@@ -287,12 +287,6 @@ vim.keymap.set({ 'n', 'v' }, '<Space>', '<Nop>', { silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
--- Resize window using <ctrl> arrow keys
-vim.keymap.set('n', '<C-A-h>', '<cmd>vertical resize -2<cr>', { desc = 'Decrease window width' })
-vim.keymap.set('n', '<C-A-k>', '<cmd>resize +2<cr>', { desc = 'Increase window height' })
-vim.keymap.set('n', '<C-A-j>', '<cmd>resize -2<cr>', { desc = 'Decrease window height' })
-vim.keymap.set('n', '<C-A-l>', '<cmd>vertical resize +2<cr>', { desc = 'Increase window width' })
-
 -- Emacs-inspired window management mappings
 vim.keymap.set('n', '<C-x>0', '<C-W>q', { desc = 'Close this window' })
 vim.keymap.set('n', '<C-x>1', '<C-W>o', { desc = 'Close all other windows' })
