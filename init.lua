@@ -609,37 +609,6 @@ require('which-key').register({
   ['<leader>h'] = { 'Git [H]unk' },
 }, { mode = 'v' })
 
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
-require('mason').setup()
-require('mason-lspconfig').setup()
-
--- Enable the following language servers
---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---
---  Add any additional override configuration in the following tables. They will be passed to
---  the `settings` field of the server config. You must look up that documentation yourself.
---
---  If you want to override the default filetypes that your language server will attach to you can
---  define the property 'filetypes' to the map in question.
-local servers = {
-  -- clangd = {},
-  -- gopls = {},
-  -- pyright = {},
-  rust_analyzer = {},
-  -- tsserver = {},
-  -- html = { filetypes = { 'html', 'twig', 'hbs'} },
-
-  lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = false },
-      -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-      -- diagnostics = { disable = { 'missing-fields' } },
-    },
-  },
-}
-
 -- Setup neovim lua configuration
 require('neodev').setup()
 
@@ -647,26 +616,45 @@ require('neodev').setup()
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- Ensure the servers above are installed
-local mason_lspconfig = require 'mason-lspconfig'
+vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    pattern = "lua",
+    callback = function(opt)
+      -- mason-lspconfig requires that these setup functions are called in this order
+      -- before setting up the servers.
+      require('mason').setup()
+      require('mason-lspconfig').setup { ensure_installed = { 'lua_ls' } }
 
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
-}
+      local lua_ls = require('lspconfig').lua_ls
+      lua_ls.setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = {
+          Lua = {
+            workspace = { checkThirdParty = false },
+            telemetry = { enable = false },
+            -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+            -- diagnostics = { disable = { 'missing-fields' } },
+          },
+        },
+      }
 
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-}
+      local mason_registry = require('mason-registry')
+      if mason_registry.is_installed('lua-language-server') then
+        lua_ls.launch(opt.buf)
+      else
+        mason_registry:on(
+          'package:install:success',
+          vim.schedule_wrap(function(pkg)
+            if pkg.name == 'lua-language-server' then
+              lua_ls.launch(opt.buf)
+            end
+          end))
+      end
+    end
+  })
 
--- Setup [ocaml-lsp] separately from [mason_lspconfig] so that we use [ocamllsp] from [$PATH] rather than installing
--- it from [opam]. This makes it easier to use the correct version for the current opam switch.
 local ocamllsp = require('lspconfig').ocamllsp
 ocamllsp.setup {
   capabilities = capabilities,
@@ -680,11 +668,19 @@ ocamllsp.setup {
   end
 }
 
--- Setup [pyright] separately from [mason_lspconfig] so that we can use [pyright-extended], which adds formatting
--- via [yapf] and linting via [ruff] on top of the usual [pyright] LSP.
+-- This works with the usual [pyright] LSP, but the intention is to use
+-- [pyright-extended], which adds formatting via [yapf] and linting via [ruff]
+-- on top of it.
+--
 -- [pyright-extended] may be installed from [npm]: [npm i -g @replit/pyright-extended].
 local pyright = require('lspconfig').pyright
 pyright.setup {
+  capabilities = capabilities,
+  on_attach = on_attach,
+}
+
+local rust_analyzer = require('lspconfig').rust_analyzer
+rust_analyzer.setup {
   capabilities = capabilities,
   on_attach = on_attach,
 }
