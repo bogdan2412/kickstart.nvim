@@ -130,7 +130,6 @@ function Root.resolve(waterfall)
         return root
       end
     end
-    error("Unable to determine buffer root")
   end
 end
 

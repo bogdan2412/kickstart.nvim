@@ -30,7 +30,9 @@ return {
           local buf = vim.api.nvim_get_current_buf()
           if allowed_buffer(buf) then
             local root = require("custom.root").get_for_buf(buf)
-            require("neo-tree.command").execute({ dir = root })
+            if root ~= nil then
+              require("neo-tree.command").execute({ dir = root })
+            end
           else
             vim.cmd("wincmd w")
           end
@@ -100,7 +102,7 @@ return {
           if allowed_buffer(vim.api.nvim_get_current_buf()) and allowed_buffer(event.buf) then
             local root = require("custom.root").get_for_buf(event.buf)
             local cwd = vim.loop.fs_realpath(vim.fn.getcwd())
-            if root ~= cwd then
+            if root ~= nil and root ~= cwd then
               vim.api.nvim_set_current_dir(root)
 
               for _, source in ipairs({ "filesystem", "buffers", "git_status" }) do
