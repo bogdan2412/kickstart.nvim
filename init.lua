@@ -620,45 +620,6 @@ require('neodev').setup()
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
-vim.api.nvim_create_autocmd(
-  "FileType",
-  {
-    pattern = "lua",
-    callback = function(opt)
-      -- mason-lspconfig requires that these setup functions are called in this order
-      -- before setting up the servers.
-      require('mason').setup()
-      require('mason-lspconfig').setup { ensure_installed = { 'lua_ls' } }
-
-      local lua_ls = require('lspconfig').lua_ls
-      lua_ls.setup {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = {
-          Lua = {
-            workspace = { checkThirdParty = false },
-            telemetry = { enable = false },
-            -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-            -- diagnostics = { disable = { 'missing-fields' } },
-          },
-        },
-      }
-
-      local mason_registry = require('mason-registry')
-      if mason_registry.is_installed('lua-language-server') then
-        lua_ls.launch(opt.buf)
-      else
-        mason_registry:on(
-          'package:install:success',
-          vim.schedule_wrap(function(pkg)
-            if pkg.name == 'lua-language-server' then
-              lua_ls.launch(opt.buf)
-            end
-          end))
-      end
-    end
-  })
-
 local ocamllsp = require('lspconfig').ocamllsp
 ocamllsp.setup {
   capabilities = capabilities,
@@ -688,6 +649,74 @@ rust_analyzer.setup {
   capabilities = capabilities,
   on_attach = on_attach,
 }
+
+-- mason-lspconfig requires that these setup functions are called in this order
+-- before setting up the servers.
+require('mason').setup()
+require('mason-lspconfig').setup {
+  automatic_installation = {
+    exclude = { "ocamllsp", "pyright", "rust_analyzer" }
+  }
+}
+
+local function launch_lsp_after_install(buf, lsp_name, launch_callback)
+  local mason_registry = require('mason-registry')
+  if mason_registry.is_installed(lsp_name) then
+    launch_callback(buf)
+  else
+    mason_registry:on(
+      'package:install:success',
+      vim.schedule_wrap(function(pkg)
+        if pkg.name == 'lua-language-server' then
+          launch_callback(buf)
+        end
+      end))
+  end
+end
+
+vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    pattern = "lua",
+    callback = function(opt)
+      local lua_ls = require('lspconfig').lua_ls
+      lua_ls.setup {
+        capabilities = capabilities,
+        on_attach = on_attach,
+        settings = {
+          Lua = {
+            workspace = { checkThirdParty = false },
+            telemetry = { enable = false },
+            -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+            -- diagnostics = { disable = { 'missing-fields' } },
+          },
+        },
+      }
+      launch_lsp_after_install(opt.buf, 'lua-language-server', lua_ls.launch)
+    end
+  })
+
+vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    pattern = { "typescript", "javascript" },
+    callback = function(opt)
+      local ts_ls = require('lspconfig').ts_ls
+      ts_ls.setup {}
+      launch_lsp_after_install(opt.buf, 'typescript-language-server', ts_ls.launch)
+    end
+  })
+
+vim.api.nvim_create_autocmd(
+  "FileType",
+  {
+    pattern = "nix",
+    callback = function(opt)
+      local nil_ls = require('lspconfig').nil_ls
+      nil_ls.setup {}
+      launch_lsp_after_install(opt.buf, 'nil', nil_ls.launch)
+    end
+  })
 
 require("lsp_signature")
 
