@@ -699,7 +699,12 @@ vim.api.nvim_create_autocmd(
 vim.api.nvim_create_autocmd(
   "FileType",
   {
-    pattern = { "typescript", "javascript" },
+    pattern = {
+      "typescript",
+      "typescriptreact",
+      "javascript",
+      "javascriptreact"
+    },
     callback = function(opt)
       local ts_ls = require('lspconfig').ts_ls
       ts_ls.setup {}
