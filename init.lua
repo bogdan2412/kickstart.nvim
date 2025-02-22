@@ -654,20 +654,21 @@ rust_analyzer.setup {
 -- before setting up the servers.
 require('mason').setup()
 require('mason-lspconfig').setup {
-  automatic_installation = {
-    exclude = { "ocamllsp", "pyright", "rust_analyzer" }
-  }
+  ensure_installed = {},
+  automatic_installation = false,
 }
 
 local function launch_lsp_after_install(buf, lsp_name, launch_callback)
-  local mason_registry = require('mason-registry')
-  if mason_registry.is_installed(lsp_name) then
+  local mason_registry = require 'mason-registry'
+  local pkg = mason_registry.get_package(lsp_name)
+  if pkg:is_installed() then
     launch_callback(buf)
   else
+    pkg:install()
     mason_registry:on(
       'package:install:success',
-      vim.schedule_wrap(function(pkg)
-        if pkg.name == 'lua-language-server' then
+      vim.schedule_wrap(function(installed_pkg)
+        if installed_pkg.name == lsp_name then
           launch_callback(buf)
         end
       end))
@@ -679,20 +680,22 @@ vim.api.nvim_create_autocmd(
   {
     pattern = "lua",
     callback = function(opt)
-      local lua_ls = require('lspconfig').lua_ls
-      lua_ls.setup {
-        capabilities = capabilities,
-        on_attach = on_attach,
-        settings = {
-          Lua = {
-            workspace = { checkThirdParty = false },
-            telemetry = { enable = false },
-            -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-            -- diagnostics = { disable = { 'missing-fields' } },
+      launch_lsp_after_install(opt.buf, 'lua-language-server', function()
+        local lua_ls = require('lspconfig').lua_ls
+        lua_ls.setup {
+          capabilities = capabilities,
+          on_attach = on_attach,
+          settings = {
+            Lua = {
+              workspace = { checkThirdParty = false },
+              telemetry = { enable = false },
+              -- NOTE: toggle below to ignore Lua_LS's noisy `missing-fields` warnings
+              -- diagnostics = { disable = { 'missing-fields' } },
+            },
           },
-        },
-      }
-      launch_lsp_after_install(opt.buf, 'lua-language-server', lua_ls.launch)
+        }
+        lua_ls.launch()
+      end)
     end
   })
 
@@ -706,9 +709,11 @@ vim.api.nvim_create_autocmd(
       "javascriptreact"
     },
     callback = function(opt)
-      local ts_ls = require('lspconfig').ts_ls
-      ts_ls.setup {}
-      launch_lsp_after_install(opt.buf, 'typescript-language-server', ts_ls.launch)
+      launch_lsp_after_install(opt.buf, 'typescript-language-server', function()
+        local ts_ls = require('lspconfig').ts_ls
+        ts_ls.setup { capabilities = capabilities, on_attach = on_attach }
+        ts_ls.launch()
+      end)
     end
   })
 
@@ -717,9 +722,11 @@ vim.api.nvim_create_autocmd(
   {
     pattern = "nix",
     callback = function(opt)
-      local nil_ls = require('lspconfig').nil_ls
-      nil_ls.setup {}
-      launch_lsp_after_install(opt.buf, 'nil', nil_ls.launch)
+      launch_lsp_after_install(opt.buf, 'nil', function()
+        local nil_ls = require('lspconfig').nil_ls
+        nil_ls.setup { capabilities = capabilities, on_attach = on_attach }
+        nil_ls.launch()
+      end)
     end
   })
 
