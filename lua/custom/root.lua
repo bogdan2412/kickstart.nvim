@@ -1,6 +1,6 @@
 local Root = {}
 
-Root.waterfall = { "lsp", "dune", { ".git", ".hg" }, "cwd_if_contains_buf", "buf_path" }
+Root.waterfall = { 'lsp', 'dune', { '.git', '.hg' }, 'cwd_if_contains_buf', 'buf_path' }
 
 Root.path_detectors = {}
 Root.buf_detectors = {}
@@ -19,7 +19,7 @@ end
 ---@return string|nil
 function Root.buf_detectors.buf_path(buf)
   local buf_name = vim.api.nvim_buf_get_name(buf)
-  if buf_name == "" then
+  if buf_name == '' then
     return get_cwd()
   end
 
@@ -66,11 +66,11 @@ end
 function Root.path_detectors.dune(path)
   local acc
   for dir in vim.fs.parents(path) do
-    if vim.fn.filereadable(dir .. "/dune-workspace") == 1 then
-      acc = dir .. "/dune-workspace"
-    elseif vim.fn.filereadable(dir .. "/dune-project") == 1 then
-      if acc and vim.fs.basename(acc) ~= "dune-workspace" then
-        acc = dir .. "/dune-project"
+    if vim.fn.filereadable(dir .. '/dune-workspace') == 1 then
+      acc = dir .. '/dune-workspace'
+    elseif vim.fn.filereadable(dir .. '/dune-project') == 1 then
+      if acc and vim.fs.basename(acc) ~= 'dune-workspace' then
+        acc = dir .. '/dune-project'
       end
     end
   end
@@ -84,7 +84,7 @@ end
 function Root.buf_detectors.lsp(buf)
   local buf_path = Root.buf_detectors.buf_path(buf)
   if buf_path ~= nil then
-    for _, client in ipairs(vim.lsp.get_active_clients({ bufnr = buf })) do
+    for _, client in ipairs(vim.lsp.get_active_clients { bufnr = buf }) do
       for _, workspace in ipairs(client.config.workspace_folders or {}) do
         local root = realpath(vim.uri_to_fname(workspace.uri))
         if root ~= nil and path_contains_other(root, buf_path) then
@@ -108,17 +108,17 @@ function Root.resolve(waterfall)
           return Root.path_detectors[detector_spec](path)
         end
       end
-    elseif type(detector_spec) == "table" then
+    elseif type(detector_spec) == 'table' then
       detector_fn = function(buf)
         local path = Root.buf_detectors.buf_path(buf)
         if path ~= nil then
           return Root.path_detectors.find_names(path, detector_spec)
         end
       end
-    elseif type(detector_spec) == "function" then
+    elseif type(detector_spec) == 'function' then
       detector_fn = detector_spec
     else
-      error("root.resolve: invalid root spec")
+      error 'root.resolve: invalid root spec'
     end
     waterfall_fn[key] = detector_fn
   end
