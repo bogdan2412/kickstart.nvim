@@ -95,8 +95,8 @@ local function open_marks()
         buf_id = vim.fn.bufadd(filename)
         new_buffers = true
       end
-      if not vim.api.nvim_buf_get_option(buf_id, 'buflisted') then
-        vim.api.nvim_buf_set_option(buf_id, 'buflisted', true)
+      if not vim.api.nvim_get_option_value('buflisted', { buf = buf_id }) then
+        vim.api.nvim_set_option_value('buflisted', true, { buf = buf_id })
       end
     end
   end
@@ -142,15 +142,15 @@ return {
         callback = function(event)
           local buf_id = event.buf
           if last_harpoon_buf_id ~= buf_id then
-            local filetype = vim.api.nvim_buf_get_option(buf_id, 'filetype')
+            local filetype = vim.api.nvim_get_option_value('filetype', { buf = buf_id })
             if filetype == 'harpoon' then
               last_harpoon_buf_id = buf_id
               -- Make it such that accidentally hitting undo on the newly
               -- created harpoon buffer does not clear its content.
-              local undolevels = vim.api.nvim_buf_get_option(buf_id, 'undolevels')
-              vim.api.nvim_buf_set_option(buf_id, 'undolevels', 0)
+              local undolevels = vim.api.nvim_get_option_value('undolevels', { buf = buf_id })
+              vim.api.nvim_set_option_value('undolevels', 0, { buf = buf_id })
               vim.cmd.normal(vim.api.nvim_replace_termcodes('i <BS><ESC>', true, true, true))
-              vim.api.nvim_buf_set_option(buf_id, 'undolevels', undolevels)
+              vim.api.nvim_set_option_value('undolevels', undolevels, { buf = buf_id })
             end
           end
         end,

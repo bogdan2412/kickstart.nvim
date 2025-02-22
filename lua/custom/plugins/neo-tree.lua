@@ -1,5 +1,5 @@
 local function allowed_buffer(buf)
-  local filetype = vim.api.nvim_buf_get_option(buf, 'filetype')
+  local filetype = vim.api.nvim_get_option_value('filetype', { buf = buf })
   if filetype == 'neo-tree' or filetype == 'fugitive' then
     return false
   end

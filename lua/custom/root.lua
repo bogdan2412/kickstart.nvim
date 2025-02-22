@@ -84,7 +84,7 @@ end
 function Root.buf_detectors.lsp(buf)
   local buf_path = Root.buf_detectors.buf_path(buf)
   if buf_path ~= nil then
-    for _, client in ipairs(vim.lsp.get_active_clients { bufnr = buf }) do
+    for _, client in ipairs(vim.lsp.get_clients { bufnr = buf }) do
       for _, workspace in ipairs(client.config.workspace_folders or {}) do
         local root = realpath(vim.uri_to_fname(workspace.uri))
         if root ~= nil and path_contains_other(root, buf_path) then

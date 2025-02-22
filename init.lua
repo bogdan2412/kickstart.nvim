@@ -228,8 +228,8 @@ local function float_term_open()
     float_term[cwd]:toggle()
   else
     float_term[cwd] = require('lazy.util').float_term({ 'tmux', 'new-session', '-A', '-s', cwd }, opts)
-    vim.api.nvim_buf_set_option(float_term[cwd].buf, 'buflisted', false)
-    vim.api.nvim_buf_set_option(float_term[cwd].buf, 'filetype', 'float-term')
+    vim.api.nvim_set_option_value('buflisted', false, { buf = float_term[cwd].buf })
+    vim.api.nvim_set_option_value('filetype', 'float-term', { buf = float_term[cwd].buf })
     vim.api.nvim_create_autocmd('BufEnter', {
       buffer = float_term[cwd].buf,
       callback = function()
