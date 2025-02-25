@@ -165,6 +165,10 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 -- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+vim.keymap.set('n', '<C-x>d', vim.diagnostic.open_float, { desc = 'Open floating window with diagnostics' })
+vim.keymap.set('n', '<C-x><C-d>', vim.diagnostic.open_float, { desc = 'Open floating window with diagnostics' })
 
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -199,6 +203,8 @@ vim.keymap.set('n', '<C-x>1', '<C-W>o', { desc = 'Close all other windows' })
 vim.keymap.set('n', '<C-x>2', '<C-W>s', { desc = 'Split window below' })
 vim.keymap.set('n', '<C-x>3', '<C-W>v', { desc = 'Split window right' })
 vim.keymap.set('n', '<C-x>+', '<C-W>=', { desc = 'Equally high and wide' })
+vim.keymap.set('n', '<C-x>x', '<C-W>w', { desc = 'Jump to next window' })
+vim.keymap.set('n', '<C-x><C-x>', '<C-W>w', { desc = 'Jump to next window' })
 
 -- Delete and paste over without updating yank buffer
 vim.keymap.set('v', '<leader>p', '"_dP')
