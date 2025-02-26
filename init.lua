@@ -824,7 +824,10 @@ require('lazy').setup({
       pyright.setup { capabilities = capabilities }
 
       local rust_analyzer = require('lspconfig').rust_analyzer
-      rust_analyzer.setup { capabilities = capabilities }
+      rust_analyzer.setup {
+        capabilities = capabilities,
+        settings = { ['rust-analyzer'] = { check = { command = 'clippy' } } },
+      }
 
       local function launch_lsp_after_install(buf, lsp_name, launch_callback)
         local mason_registry = require 'mason-registry'
