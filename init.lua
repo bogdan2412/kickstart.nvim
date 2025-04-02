@@ -815,13 +815,11 @@ require('lazy').setup({
         end,
       }
 
-      -- This works with the usual [pyright] LSP, but the intention is to use
-      -- [pyright-extended], which adds formatting via [yapf] and linting via [ruff]
-      -- on top of it.
-      --
-      -- [pyright-extended] may be installed from [npm]: [npm i -g @replit/pyright-extended].
       local pyright = require('lspconfig').pyright
       pyright.setup { capabilities = capabilities }
+
+      local ruff = require('lspconfig').ruff
+      ruff.setup { capabilities = capabilities }
 
       local rust_analyzer = require('lspconfig').rust_analyzer
       rust_analyzer.setup {
