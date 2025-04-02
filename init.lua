@@ -901,7 +901,7 @@ require('lazy').setup({
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
+    cmd = { 'ConformInfo', 'FormatDisable', 'FormatEnable', 'FormatToggle' },
     keys = {
       {
         '<leader>f',
@@ -911,6 +911,16 @@ require('lazy').setup({
         mode = '',
         desc = '[F]ormat buffer',
       },
+      {
+        '<leader>tf',
+        ':FormatToggle<CR>',
+        desc = 'Toggle autoformat-on-save in current buffer',
+      },
+      {
+        '<leader>tF',
+        ':FormatToggle!<CR>',
+        desc = 'Toggle autoformat-on-save globally',
+      },
     },
     opts = {
       notify_on_error = false,
@@ -918,6 +928,11 @@ require('lazy').setup({
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
+
+        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+          return
+        end
+
         local disable_filetypes = { c = true, cpp = true }
         local lsp_format_opt
         if disable_filetypes[vim.bo[bufnr].filetype] then
@@ -942,6 +957,49 @@ require('lazy').setup({
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
       },
     },
+    config = function(_, opts)
+      require('conform').setup(opts)
+
+      local format_disable = function(args)
+        -- FormatDisable will disable formatting in the current buffer
+        -- FormatDisable! will disable formatting globally
+        if args.bang then
+          vim.g.disable_autoformat = true
+          print 'Formatting disabled globally'
+        else
+          vim.b.disable_autoformat = true
+          print 'Formatting disabled in current buffer'
+        end
+      end
+
+      local format_enable = function()
+        vim.g.disable_autoformat = false
+        vim.b.disable_autoformat = false
+        print 'Formatting enabled'
+      end
+
+      local format_toggle = function(args)
+        if vim.g.disable_autoformat or vim.b.disable_autoformat then
+          format_enable()
+        else
+          format_disable(args)
+        end
+      end
+
+      vim.api.nvim_create_user_command('FormatDisable', format_disable, {
+        desc = 'Disable autoformat-on-save',
+        bang = true,
+      })
+
+      vim.api.nvim_create_user_command('FormatEnable', format_enable, {
+        desc = 'Re-enable autoformat-on-save',
+      })
+
+      vim.api.nvim_create_user_command('FormatToggle', format_toggle, {
+        desc = 'Toggle autoformat-on-save',
+        bang = true,
+      })
+    end,
   },
 
   { -- Autocompletion
