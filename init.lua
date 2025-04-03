@@ -893,6 +893,17 @@ require('lazy').setup({
           end)
         end,
       })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'bash', 'sh' },
+        callback = function(opt)
+          launch_lsp_after_install(opt.buf, 'bash-language-server', function()
+            local bashls = require('lspconfig').bashls
+            bashls.setup { capabilities = capabilities }
+            bashls.launch()
+          end)
+        end,
+      })
     end,
   },
 
