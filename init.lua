@@ -904,6 +904,22 @@ require('lazy').setup({
           end)
         end,
       })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto' },
+        callback = function(opt)
+          launch_lsp_after_install(opt.buf, 'clangd', function()
+            local clangd = require('lspconfig').clangd
+            clangd.setup {
+              capabilities = capabilities,
+              root_dir = function(path)
+                return require('custom.root').path_detectors.find_names(path, { '.git' })
+              end,
+            }
+            clangd.launch()
+          end)
+        end,
+      })
     end,
   },
 
