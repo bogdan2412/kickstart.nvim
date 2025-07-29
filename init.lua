@@ -920,6 +920,17 @@ require('lazy').setup({
           end)
         end,
       })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'toml' },
+        callback = function(opt)
+          launch_lsp_after_install(opt.buf, 'taplo', function()
+            local taplo = require('lspconfig').taplo
+            taplo.setup { capabilities = capabilities }
+            taplo.launch()
+          end)
+        end,
+      })
     end,
   },
 
