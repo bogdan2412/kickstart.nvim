@@ -175,8 +175,12 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
 -- vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous diagnostic message' })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnostic message' })
+vim.keymap.set('n', '[d', function()
+  vim.diagnostic.jump { count = -1, float = true }
+end, { desc = 'Go to previous diagnostic message' })
+vim.keymap.set('n', ']d', function()
+  vim.diagnostic.jump { count = 1, float = true }
+end, { desc = 'Go to next diagnostic message' })
 vim.keymap.set('n', '<C-x>d', vim.diagnostic.open_float, { desc = 'Open floating window with diagnostics' })
 vim.keymap.set('n', '<C-x><C-d>', vim.diagnostic.open_float, { desc = 'Open floating window with diagnostics' })
 
@@ -808,7 +812,7 @@ require('lazy').setup({
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-        automatic_installation = false,
+        automatic_enable = false,
         -- handlers = {
         --   function(server_name)
         --     local server = servers[server_name] or {}
@@ -816,45 +820,55 @@ require('lazy').setup({
         --     -- by the server configuration above. Useful when disabling
         --     -- certain features of an LSP (for example, turning off formatting for ts_ls)
         --     server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-        --     require('lspconfig')[server_name].setup(server)
+        --     vim.lsp.config(server_name, server)
+        --     vim.lsp.enable(server_name)
         --   end,
         -- },
       }
 
-      local ocamllsp = require('lspconfig').ocamllsp
-      ocamllsp.setup {
-        capabilities = capabilities,
-        root_dir = function(path)
+      vim.lsp.config('*', { capabilities = capabilities })
+
+      vim.lsp.config('ocamllsp', {
+        root_dir = function(buf, on_dir)
+          local path = vim.api.nvim_buf_get_name(buf)
           local dune_path = require('custom.root').path_detectors.dune(path)
           if dune_path then
-            return dune_path
+            on_dir(dune_path)
+          else
+            local git_repo_path = require('custom.root').path_detectors.find_names(path, { '.git' })
+            if git_repo_path then
+              on_dir(git_repo_path)
+            end
           end
-          return require('lspconfig.server_configurations.ocamllsp').default_config.root_dir(path)
         end,
-      }
+      })
+      vim.lsp.enable 'ocamllsp'
 
-      local rust_analyzer = require('lspconfig').rust_analyzer
-      rust_analyzer.setup {
-        capabilities = capabilities,
+      vim.lsp.config('rust_analyzer', {
         settings = { ['rust-analyzer'] = { check = { command = 'clippy' } } },
-      }
+      })
+      vim.lsp.enable 'rust_analyzer'
 
       local function launch_lsp_install_if_missing(buf, lsp_name, launch_callback)
+        local launch_callback_wrapped = function(buffer)
+          launch_callback(buffer)
+          vim.cmd.doautocmd 'nvim.lsp.enable FileType'
+        end
         -- If LSP binary is already in path, skip installing it via Mason.
         if vim.fn.executable(lsp_name) == 1 then
-          launch_callback(buf)
+          launch_callback_wrapped(buf)
         else
           local mason_registry = require 'mason-registry'
           local pkg = mason_registry.get_package(lsp_name)
           if pkg:is_installed() then
-            launch_callback(buf)
+            launch_callback_wrapped(buf)
           else
             pkg:install()
             mason_registry:on(
               'package:install:success',
               vim.schedule_wrap(function(installed_pkg)
                 if installed_pkg.name == lsp_name then
-                  launch_callback(buf)
+                  launch_callback_wrapped(buf)
                 end
               end)
             )
@@ -866,15 +880,11 @@ require('lazy').setup({
         pattern = 'python',
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'pyright', function()
-            local pyright = require('lspconfig').pyright
-            pyright.setup { capabilities = capabilities }
-            pyright.launch()
+            vim.lsp.enable 'pyright'
           end)
 
           launch_lsp_install_if_missing(opt.buf, 'ruff', function()
-            local ruff = require('lspconfig').ruff
-            ruff.setup { capabilities = capabilities }
-            ruff.launch()
+            vim.lsp.enable 'ruff'
           end)
         end,
       })
@@ -884,9 +894,7 @@ require('lazy').setup({
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'stylua', function() end)
           launch_lsp_install_if_missing(opt.buf, 'lua-language-server', function()
-            local lua_ls = require('lspconfig').lua_ls
-            lua_ls.setup {
-              capabilities = capabilities,
+            vim.lsp.config('lua_ls', {
               settings = {
                 Lua = {
                   workspace = { checkThirdParty = false },
@@ -895,8 +903,8 @@ require('lazy').setup({
                   -- diagnostics = { disable = { 'missing-fields' } },
                 },
               },
-            }
-            lua_ls.launch()
+            })
+            vim.lsp.enable 'lua_ls'
           end)
         end,
       })
@@ -910,9 +918,7 @@ require('lazy').setup({
         },
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'typescript-language-server', function()
-            local ts_ls = require('lspconfig').ts_ls
-            ts_ls.setup { capabilities = capabilities }
-            ts_ls.launch()
+            vim.lsp.enable 'ts_ls'
           end)
         end,
       })
@@ -921,9 +927,7 @@ require('lazy').setup({
         pattern = 'nix',
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'nil', function()
-            local nil_ls = require('lspconfig').nil_ls
-            nil_ls.setup { capabilities = capabilities }
-            nil_ls.launch()
+            vim.lsp.enable 'nil_ls'
           end)
         end,
       })
@@ -932,9 +936,7 @@ require('lazy').setup({
         pattern = { 'bash', 'sh' },
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'bash-language-server', function()
-            local bashls = require('lspconfig').bashls
-            bashls.setup { capabilities = capabilities }
-            bashls.launch()
+            vim.lsp.enable 'bashls'
           end)
         end,
       })
@@ -943,14 +945,10 @@ require('lazy').setup({
         pattern = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto' },
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'clangd', function()
-            local clangd = require('lspconfig').clangd
-            clangd.setup {
-              capabilities = capabilities,
-              root_dir = function(path)
-                return require('custom.root').path_detectors.find_names(path, { '.git' })
-              end,
-            }
-            clangd.launch()
+            vim.lsp.config('clangd', {
+              root_markers = { '.git' },
+            })
+            vim.lsp.enable 'clangd'
           end)
         end,
       })
@@ -959,9 +957,7 @@ require('lazy').setup({
         pattern = { 'toml' },
         callback = function(opt)
           launch_lsp_install_if_missing(opt.buf, 'taplo', function()
-            local taplo = require('lspconfig').taplo
-            taplo.setup { capabilities = capabilities }
-            taplo.launch()
+            vim.lsp.enable 'taplo'
           end)
         end,
       })
