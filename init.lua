@@ -833,41 +833,57 @@ require('lazy').setup({
         end,
       }
 
-      local pyright = require('lspconfig').pyright
-      pyright.setup { capabilities = capabilities }
-
-      local ruff = require('lspconfig').ruff
-      ruff.setup { capabilities = capabilities }
-
       local rust_analyzer = require('lspconfig').rust_analyzer
       rust_analyzer.setup {
         capabilities = capabilities,
         settings = { ['rust-analyzer'] = { check = { command = 'clippy' } } },
       }
 
-      local function launch_lsp_after_install(buf, lsp_name, launch_callback)
-        local mason_registry = require 'mason-registry'
-        local pkg = mason_registry.get_package(lsp_name)
-        if pkg:is_installed() then
+      local function launch_lsp_install_if_missing(buf, lsp_name, launch_callback)
+        -- If LSP binary is already in path, skip installing it via Mason.
+        if vim.fn.executable(lsp_name) == 1 then
           launch_callback(buf)
         else
-          pkg:install()
-          mason_registry:on(
-            'package:install:success',
-            vim.schedule_wrap(function(installed_pkg)
-              if installed_pkg.name == lsp_name then
-                launch_callback(buf)
-              end
-            end)
-          )
+          local mason_registry = require 'mason-registry'
+          local pkg = mason_registry.get_package(lsp_name)
+          if pkg:is_installed() then
+            launch_callback(buf)
+          else
+            pkg:install()
+            mason_registry:on(
+              'package:install:success',
+              vim.schedule_wrap(function(installed_pkg)
+                if installed_pkg.name == lsp_name then
+                  launch_callback(buf)
+                end
+              end)
+            )
+          end
         end
       end
 
       vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'python',
+        callback = function(opt)
+          launch_lsp_install_if_missing(opt.buf, 'pyright', function()
+            local pyright = require('lspconfig').pyright
+            pyright.setup { capabilities = capabilities }
+            pyright.launch()
+          end)
+
+          launch_lsp_install_if_missing(opt.buf, 'ruff', function()
+            local ruff = require('lspconfig').ruff
+            ruff.setup { capabilities = capabilities }
+            ruff.launch()
+          end)
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('FileType', {
         pattern = 'lua',
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'stylua', function() end)
-          launch_lsp_after_install(opt.buf, 'lua-language-server', function()
+          launch_lsp_install_if_missing(opt.buf, 'stylua', function() end)
+          launch_lsp_install_if_missing(opt.buf, 'lua-language-server', function()
             local lua_ls = require('lspconfig').lua_ls
             lua_ls.setup {
               capabilities = capabilities,
@@ -893,7 +909,7 @@ require('lazy').setup({
           'javascriptreact',
         },
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'typescript-language-server', function()
+          launch_lsp_install_if_missing(opt.buf, 'typescript-language-server', function()
             local ts_ls = require('lspconfig').ts_ls
             ts_ls.setup { capabilities = capabilities }
             ts_ls.launch()
@@ -904,7 +920,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('FileType', {
         pattern = 'nix',
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'nil', function()
+          launch_lsp_install_if_missing(opt.buf, 'nil', function()
             local nil_ls = require('lspconfig').nil_ls
             nil_ls.setup { capabilities = capabilities }
             nil_ls.launch()
@@ -915,7 +931,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'bash', 'sh' },
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'bash-language-server', function()
+          launch_lsp_install_if_missing(opt.buf, 'bash-language-server', function()
             local bashls = require('lspconfig').bashls
             bashls.setup { capabilities = capabilities }
             bashls.launch()
@@ -926,7 +942,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto' },
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'clangd', function()
+          launch_lsp_install_if_missing(opt.buf, 'clangd', function()
             local clangd = require('lspconfig').clangd
             clangd.setup {
               capabilities = capabilities,
@@ -942,7 +958,7 @@ require('lazy').setup({
       vim.api.nvim_create_autocmd('FileType', {
         pattern = { 'toml' },
         callback = function(opt)
-          launch_lsp_after_install(opt.buf, 'taplo', function()
+          launch_lsp_install_if_missing(opt.buf, 'taplo', function()
             local taplo = require('lspconfig').taplo
             taplo.setup { capabilities = capabilities }
             taplo.launch()
